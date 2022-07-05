@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 #[derive(Clone)]
 pub struct RestClient {
     url: String,
@@ -50,5 +52,37 @@ impl RestClient {
         } else {
             Some(res.json().unwrap())
         }
+    }
+
+    pub fn generate_transaction(
+        &self,
+        sender: &str,
+        payload: serde_json::Value,
+    ) -> serde_json::Value {
+        let account_res = self.account(sender);
+
+        let seq_num = account_res
+            .get("sequence_number")
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .parse::<u64>()
+            .unwrap();
+
+        let expiration_time_secs = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_secs()
+            + 600;
+
+        serde_json::json!({
+            "sender": format!("0x{}", sender),
+            "sequence_number": seq_num.to_string(),
+            "max_gas_amount": "1000",
+            "gas_unit_price": "1",
+            "gas_currency_code": "XUS",
+            "expiration_timestamp_secs": expiration_time_secs.to_string(),
+            "payload": payload
+        })
     }
 }
