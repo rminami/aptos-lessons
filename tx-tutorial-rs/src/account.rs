@@ -3,7 +3,7 @@ use rand::{rngs::OsRng, Rng, SeedableRng};
 use tiny_keccak::{Hasher, Sha3};
 
 pub struct Account {
-    signing_key: SecretKey,
+    pub signing_key: SecretKey,
 }
 
 impl Account {
