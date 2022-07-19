@@ -28,6 +28,22 @@ module NamedAddr::BasicCoin {
         move_to(account, Balance { coin: empty_coin });
     }
     
+    spec publish_balance {
+        include Schema_publish<CoinType> { addr: signer::address_of(account), amount: 0 };
+    }
+    
+    spec schema Schema_publish<CoinType> {
+        addr: address;
+        amount: u64;
+        
+        aborts_if exists<Balance<CoinType>>(addr);
+        
+        ensures exists<Balance<CoinType>>(addr);
+        let post balance_post = global<Balance<CoinType>>(addr).coin.value;
+        
+        ensures balance_post == amount;
+    }
+    
     // Mint `amount` tokens to `mint_addr`. Mint must be approved by the module owner.
     public fun mint<CoinType: drop>(mint_addr: address, amount: u64, _witness: CoinType) acquires Balance {
         // Deposit `amount` of tokens to `mint_addr`'s balance
@@ -66,7 +82,7 @@ module NamedAddr::BasicCoin {
         aborts_if !exists<Balance<CoinType>>(to);
         aborts_if balance_from < amount;
         aborts_if balance_to + amount > MAX_U64;
-        aborts_if balance_from == to;
+        aborts_if addr_from == to;
         
         ensures balance_from_post == balance_from - amount;
         ensures balance_to_post == balance_to + amount;
