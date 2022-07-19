@@ -96,6 +96,37 @@ module NamedAddr::BasicCoin {
         publish_balance(&account);
         publish_balance(&account);
     }
+    
+    #[test]
+    #[expected_failure]
+    fun balance_dne() acquires Balance {
+        balance_of(@0x1);
+    }
+    
+    #[test]
+    #[expected_failure]
+    fun withdraw_dne() acquires Balance {
+        // Need to unpack the coin since `Coin` is a resource
+        Coin { value: _ } = withdraw(@0x1, 0);
+    }
+    
+    #[test(account = @0x1)]
+    #[expected_failure]
+    fun withdraw_too_much(account: signer) acquires Balance {
+        let addr = signer::address_of(&account);
+        publish_balance(&account);
+        Coin { value: _ } = withdraw(addr, 1);
+    }
+    
+    #[test(account = @NamedAddr)]
+    fun can_withdraw_amount(account: signer) acquires Balance {
+        publish_balance(&account);
+        let amount = 1000;
+        let addr = signer::address_of(&account);
+        mint(&account, addr, amount);
+        let Coin { value } = withdraw(addr, amount);
+        assert!(value == amount, 0);
+    }
 }
 
 
