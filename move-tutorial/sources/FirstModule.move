@@ -49,6 +49,10 @@ module NamedAddr::BasicCoin {
         // Deposit `amount` of tokens to `mint_addr`'s balance
         deposit<CoinType>(mint_addr, Coin { value: amount });
     }
+    
+    spec mint {
+        include DepositSchema<CoinType> { addr: mint_addr, amount };
+    }
 
     // Returns the balance of `owner`.
     public fun balance_of<CoinType>(owner: address): u64 acquires Balance {
@@ -127,7 +131,19 @@ module NamedAddr::BasicCoin {
         let post balance_post = global<Balance<CoinType>>(addr).coin.value;
         ensures balance_post == balance + check_value;
     }
-    
+
+    spec schema DepositSchema<CoinType> {
+        addr: address;
+        amount: u64;
+        let balance = global<Balance<CoinType>>(addr).coin.value;
+
+        aborts_if !exists<Balance<CoinType>>(addr);
+        aborts_if balance + amount > MAX_U64;
+
+        let post balance_post = global<Balance<CoinType>>(addr).coin.value;
+        ensures balance_post == balance + amount;
+    }
+
     // #[test(account = @0x1)]
     // #[expected_failure]
     // fun mint_non_owner(account: signer) acquires Balance {
