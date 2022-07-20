@@ -1,0 +1,11 @@
+[package]
+name = "sui-defi-example"
+version = "0.0.0"
+
+[dependencies]
+# MoveStdlib = { git = "https://github.com/move-language/move.git", subdir = "language/move-stdlib", rev = "main" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "main" }
+
+[addresses]
+defi = "0x0"
+std = "0x1"
